@@ -4,12 +4,14 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
 
 func main() {
-	maxWeight := 0
+
+	top3 := []int{0, 0, 0}
 	inFile, err := os.Open("input.txt")
 	if err != nil {
 		panic("err" + err.Error())
@@ -20,14 +22,19 @@ func main() {
 
 		currentWeight, err := getWeight(reader)
 		if err != nil {
-			fmt.Print(maxWeight)
+			fmt.Print(top3[2] + top3[1] + top3[0])
 			return
 		}
-		if currentWeight > maxWeight {
-			maxWeight = currentWeight
-		}
-
+		addWeight(top3, currentWeight)
 	}
+
+}
+
+func addWeight(top3 []int, num int) {
+	if top3[0] < num {
+		top3[0] = num
+	}
+	sort.Ints(top3)
 
 }
 
