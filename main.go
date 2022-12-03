@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strings"
 )
 
 func main() {
@@ -22,82 +21,28 @@ func main() {
 			fmt.Println(score)
 			return
 		}
-		words := strings.Split(string(b), " ")
-
-		switch words[1] {
-		case "X":
-			//lloose
-			words[1] = outcome(words[0], false)
-
-		case "Y": //draw
-			words[1] = mapIt(words[0])
-		case "Z": //win
-			words[1] = outcome(words[0], true)
+		s := string(b)
+		part1, part2 := s[0:len(s)/2], s[len(s)/2:]
+		common := findCommon(part1, part2)
+		//65 97
+		priority := 0
+		if int(common) >= 65 && int(common) <= 90 {
+			priority = int(common) - 65 + 27
+		} else {
+			priority = int(common) - 97 + 1
 		}
-
-		score += play(words[0], words[1])
+		score += priority
 	}
 }
-func mapIt(word string) string {
-	switch word {
-	case "A":
-		return "X"
-	case "B":
-		return "Y"
-	case "C":
-		return "Z"
+func findCommon(s1, s2 string) rune {
+	m := map[rune]bool{}
+	for _, c := range s1 {
+		m[c] = true
 	}
-	return ""
-}
-
-// A=Rock
-// B=Paper
-// C=Scissor
-func outcome(play string, shouldWin bool) string {
-	switch play {
-	case "A":
-		if shouldWin {
-			return "Y"
-		} else {
-			return "Z"
-		}
-	case "B":
-		if shouldWin {
-			return "Z"
-		} else {
-			return "X"
-		}
-	case "C":
-		if shouldWin {
-			return "X"
-		} else {
-			return "Y"
+	for _, c := range s2 {
+		if m[c] {
+			return c
 		}
 	}
-	panic("ss")
-
-}
-func play(player1 string, player2 string) int {
-	switch player1 + player2 {
-	case "AX":
-		return 1 + 3
-	case "AY":
-		return 2 + 6
-	case "AZ":
-		return 3
-	case "BX":
-		return 1
-	case "BY":
-		return 2 + 3
-	case "BZ":
-		return 3 + 6
-	case "CX":
-		return 1 + 6
-	case "CY":
-		return 2
-	case "CZ":
-		return 3 + 3
-
-	}
-	return 0
+	return ' '
 }
