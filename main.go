@@ -16,15 +16,17 @@ func main() {
 
 	reader := bufio.NewReader(inFile)
 	for {
-		b, _, err := reader.ReadLine()
-		if err != nil {
-			fmt.Println(score)
-			return
+		parts := make([]string, 3)
+		for i := 0; i < 3; i++ {
+			b, _, err := reader.ReadLine()
+			if err != nil {
+				fmt.Println(score)
+				return
+			}
+			parts[i] = string(b)
+
 		}
-		s := string(b)
-		part1, part2 := s[0:len(s)/2], s[len(s)/2:]
-		common := findCommon(part1, part2)
-		//65 97
+		common := findCommon(parts)
 		priority := 0
 		if int(common) >= 65 && int(common) <= 90 {
 			priority = int(common) - 65 + 27
@@ -34,13 +36,18 @@ func main() {
 		score += priority
 	}
 }
-func findCommon(s1, s2 string) rune {
-	m := map[rune]bool{}
-	for _, c := range s1 {
-		m[c] = true
+func findCommon(parts []string) rune {
+	m1 := map[rune]bool{}
+	m2 := map[rune]bool{}
+	for _, c := range parts[0] {
+		m1[c] = true
 	}
-	for _, c := range s2 {
-		if m[c] {
+	for _, c := range parts[1] {
+		m2[c] = true
+	}
+
+	for _, c := range parts[2] {
+		if m1[c] && m2[c] {
 			return c
 		}
 	}
