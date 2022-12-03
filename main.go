@@ -4,14 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"sort"
-	"strconv"
 	"strings"
 )
 
 func main() {
 
-	top3 := []int{0, 0, 0}
+	score := 0
 	inFile, err := os.Open("input.txt")
 	if err != nil {
 		panic("err" + err.Error())
@@ -19,37 +17,87 @@ func main() {
 
 	reader := bufio.NewReader(inFile)
 	for {
-
-		currentWeight, err := getWeight(reader)
+		b, _, err := reader.ReadLine()
 		if err != nil {
-			fmt.Print(top3[2] + top3[1] + top3[0])
+			fmt.Println(score)
 			return
 		}
-		addWeight(top3, currentWeight)
-	}
+		words := strings.Split(string(b), " ")
 
+		switch words[1] {
+		case "X":
+			//lloose
+			words[1] = outcome(words[0], false)
+
+		case "Y": //draw
+			words[1] = mapIt(words[0])
+		case "Z": //win
+			words[1] = outcome(words[0], true)
+		}
+
+		score += play(words[0], words[1])
+	}
+}
+func mapIt(word string) string {
+	switch word {
+	case "A":
+		return "X"
+	case "B":
+		return "Y"
+	case "C":
+		return "Z"
+	}
+	return ""
 }
 
-func addWeight(top3 []int, num int) {
-	if top3[0] < num {
-		top3[0] = num
+// A=Rock
+// B=Paper
+// C=Scissor
+func outcome(play string, shouldWin bool) string {
+	switch play {
+	case "A":
+		if shouldWin {
+			return "Y"
+		} else {
+			return "Z"
+		}
+	case "B":
+		if shouldWin {
+			return "Z"
+		} else {
+			return "X"
+		}
+	case "C":
+		if shouldWin {
+			return "X"
+		} else {
+			return "Y"
+		}
 	}
-	sort.Ints(top3)
+	panic("ss")
 
 }
+func play(player1 string, player2 string) int {
+	switch player1 + player2 {
+	case "AX":
+		return 1 + 3
+	case "AY":
+		return 2 + 6
+	case "AZ":
+		return 3
+	case "BX":
+		return 1
+	case "BY":
+		return 2 + 3
+	case "BZ":
+		return 3 + 6
+	case "CX":
+		return 1 + 6
+	case "CY":
+		return 2
+	case "CZ":
+		return 3 + 3
 
-func getWeight(reader *bufio.Reader) (int, error) {
-	weight := 0
-	for {
-		s, err := reader.ReadString('\n')
-
-		if err != nil {
-			return 0, err
-		}
-		if len(s) == 1 {
-			return weight, nil
-		}
-		w, err := strconv.Atoi(strings.TrimSuffix(s, "\n"))
-		weight += w
 	}
+	return 0
 }
