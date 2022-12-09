@@ -4,52 +4,52 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 )
 
 func main() {
 
-	score := 0
 	inFile, err := os.Open("input.txt")
 	if err != nil {
 		panic("err" + err.Error())
 	}
-
+	result := 0
 	reader := bufio.NewReader(inFile)
 	for {
-		parts := make([]string, 3)
+
 		for i := 0; i < 3; i++ {
 			b, _, err := reader.ReadLine()
 			if err != nil {
-				fmt.Println(score)
+				fmt.Println(result)
 				return
 			}
-			parts[i] = string(b)
+			parts := strings.Split(string(b), ",")
+			p1 := strings.Split(parts[0], "-")
+			p2 := strings.Split(parts[1], "-")
+			part1 := convert(p1)
+			part2 := convert(p2)
+			//2-8 3-7
+			if Is(part1, part2) || Is(part2, part1) {
+				result++
+			}
 
 		}
-		common := findCommon(parts)
-		priority := 0
-		if int(common) >= 65 && int(common) <= 90 {
-			priority = int(common) - 65 + 27
-		} else {
-			priority = int(common) - 97 + 1
-		}
-		score += priority
+
 	}
 }
-func findCommon(parts []string) rune {
-	m1 := map[rune]bool{}
-	m2 := map[rune]bool{}
-	for _, c := range parts[0] {
-		m1[c] = true
+func convert(p []string) []int {
+	ints := []int{}
+	for _, i := range p {
+		elem, _ := strconv.Atoi(i)
+		ints = append(ints, elem)
 	}
-	for _, c := range parts[1] {
-		m2[c] = true
-	}
+	return ints
 
-	for _, c := range parts[2] {
-		if m1[c] && m2[c] {
-			return c
-		}
+}
+func Is(part2, part1 []int) bool {
+	if part2[0] <= part1[1] && part2[0] >= part1[0] && part2[1] <= part1[1] {
+		return true
 	}
-	return ' '
+	return false
 }
