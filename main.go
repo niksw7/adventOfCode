@@ -47,8 +47,9 @@ func convert(p []string) []int {
 	return ints
 
 }
+
 func Is(part2, part1 []int) bool {
-	if part2[0] <= part1[1] && part2[0] >= part1[0] && part2[1] <= part1[1] {
+	if part2[0] <= part1[1] && part2[0] >= part1[0] {
 		return true
 	}
 	return false
