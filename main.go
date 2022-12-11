@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -14,43 +15,78 @@ func main() {
 	if err != nil {
 		panic("err" + err.Error())
 	}
-	result := 0
+
 	reader := bufio.NewReader(inFile)
+
+	matrix := getMatrix(reader)
 	for {
 
-		for i := 0; i < 3; i++ {
-			b, _, err := reader.ReadLine()
-			if err != nil {
-				fmt.Println(result)
-				return
-			}
-			parts := strings.Split(string(b), ",")
-			p1 := strings.Split(parts[0], "-")
-			p2 := strings.Split(parts[1], "-")
-			part1 := convert(p1)
-			part2 := convert(p2)
-			//2-8 3-7
-			if Is(part1, part2) || Is(part2, part1) {
-				result++
+		line, _, err := reader.ReadLine()
+		if err != nil {
+			fmt.Print("********")
+			for i := 0; i < 9; i++ {
+				fmt.Print(matrix[i][0])
 			}
 
+			return
 		}
+		elems := strings.Split(string(line), " ")
+		totalParts, _ := strconv.Atoi(elems[1])
+		from, _ := strconv.Atoi(elems[3])
+		to, _ := strconv.Atoi(elems[5])
+		move(matrix, totalParts, from-1, to-1)
 
 	}
-}
-func convert(p []string) []int {
-	ints := []int{}
-	for _, i := range p {
-		elem, _ := strconv.Atoi(i)
-		ints = append(ints, elem)
-	}
-	return ints
 
 }
 
-func Is(part2, part1 []int) bool {
-	if part2[0] <= part1[1] && part2[0] >= part1[0] {
-		return true
+func move(matrix [][]string, totalParts, from, to int) {
+	fmt.Println("matrix state", matrix)
+	fmt.Printf("moving %d parts from %d to %d\n", totalParts, from, to)
+
+	elementsRemoved := matrix[from][:totalParts]
+	fmt.Println("Elements removed ", elementsRemoved)
+	matrix[from] = matrix[from][totalParts:]
+	matrix[to] = getArrayAfterPrefix(matrix[to], reverse(elementsRemoved))
+	fmt.Println("Matrix now is ", matrix)
+
+}
+
+// t,r,e . p,k ==> t,r,e
+func getArrayAfterPrefix(m1, toAdd []string) []string {
+	return append(toAdd, m1...)
+
+}
+
+func reverse(e []string) []string {
+	e1 := make([]string, len(e))
+	for i := 0; i < len(e); i++ {
+		e1[i] = e[len(e)-i-1]
 	}
-	return false
+	return e1
+}
+func getMatrix(reader *bufio.Reader) [][]string {
+
+	buf := make([]byte, 4)
+	matrix := make([][]string, 9)
+
+	index := 0
+	for {
+		_, err := io.ReadFull(reader, buf)
+		if err != nil {
+			return nil
+		}
+		str := strings.TrimSpace(string(buf))
+		fmt.Println("s", str, len(str), len(string(buf)))
+		if str == "" {
+
+		} else if string(buf)[1:2] == "1" {
+			reader.ReadLine()
+			reader.ReadLine()
+			return matrix
+		} else {
+			matrix[index%9] = append(matrix[index%9], string(buf)[1:2])
+		}
+		index++
+	}
 }
