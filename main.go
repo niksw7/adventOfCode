@@ -47,7 +47,7 @@ func move(matrix [][]string, totalParts, from, to int) {
 	elementsRemoved := matrix[from][:totalParts]
 	fmt.Println("Elements removed ", elementsRemoved)
 	matrix[from] = matrix[from][totalParts:]
-	matrix[to] = getArrayAfterPrefix(matrix[to], reverse(elementsRemoved))
+	matrix[to] = getArrayAfterPrefix(matrix[to], copy(elementsRemoved))
 	fmt.Println("Matrix now is ", matrix)
 
 }
@@ -58,10 +58,10 @@ func getArrayAfterPrefix(m1, toAdd []string) []string {
 
 }
 
-func reverse(e []string) []string {
+func copy(e []string) []string {
 	e1 := make([]string, len(e))
 	for i := 0; i < len(e); i++ {
-		e1[i] = e[len(e)-i-1]
+		e1[i] = e[i]
 	}
 	return e1
 }
