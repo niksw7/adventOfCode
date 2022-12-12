@@ -26,7 +26,7 @@ func main() {
 		}
 		m[line[i]] = i + 1
 
-		if i+1-oldIndex == 3 {
+		if i+1-oldIndex == 13 {
 			fmt.Println("", i+1)
 			return
 		}
