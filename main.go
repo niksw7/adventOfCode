@@ -8,28 +8,37 @@ import (
 	"strings"
 )
 
+var smallestElement int = 100000000
+
 func main() {
 
 	tree := BuildTree()
-	fmt.Println(recurse(tree.files["/"]))
+	totalDiskSpace := 70000000
+
+	rootDir := tree.files["/"]
+	totalSize := rootDir.getSize()
+	available := totalDiskSpace - totalSize
+	needed := 30000000 - available
+	recurse(rootDir, needed)
+	fmt.Println(smallestElement)
 
 }
 
-func recurse(t *Tree) int {
-	size := 0
+func recurse(t *Tree, sizeToClean int) {
 	if t == nil || t.size != 0 {
-		return 0
+		return
 	}
-	if t.getSize() <= 100000 {
-		size += t.getSize()
+	dirSize := t.getSize()
+	if dirSize >= sizeToClean && smallestElement > dirSize {
+		smallestElement = dirSize
 	}
 
 	for _, v := range t.files {
 		if v.size == 0 {
-			size += recurse(v)
+			recurse(v, sizeToClean)
 		}
 	}
-	return size
+
 }
 
 type Tree struct {
