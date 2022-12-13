@@ -4,121 +4,103 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strconv"
-	"strings"
+	"sort"
 )
 
-var smallestElement int = 100000000
-
 func main() {
-
-	tree := BuildTree()
-	totalDiskSpace := 70000000
-
-	rootDir := tree.files["/"]
-	totalSize := rootDir.getSize()
-	available := totalDiskSpace - totalSize
-	needed := 30000000 - available
-	recurse(rootDir, needed)
-	fmt.Println(smallestElement)
-
+	matrix := buildMatrix()
+	count := 0
+	d := generateVisibility(matrix)
+	for i := 0; i < len(matrix); i++ {
+		for j := 0; j < len(matrix[0]); j++ {
+			if d[i][j].min() < matrix[i][j] {
+				count++
+			}
+		}
+	}
+	fmt.Println(count)
 }
 
-func recurse(t *Tree, sizeToClean int) {
-	if t == nil || t.size != 0 {
-		return
-	}
-	dirSize := t.getSize()
-	if dirSize >= sizeToClean && smallestElement > dirSize {
-		smallestElement = dirSize
-	}
+type Data struct {
+	left   int
+	right  int
+	top    int
+	bottom int
+}
 
-	for _, v := range t.files {
-		if v.size == 0 {
-			recurse(v, sizeToClean)
+func (d Data) min() int {
+	a := []int{d.left, d.right, d.top, d.bottom}
+	sort.Ints(a)
+	return a[0]
+}
+
+func generateVisibility(matrix [][]int) [][]Data {
+	d := [][]Data{}
+	//rows
+	for i := 0; i < len(matrix); i++ {
+		d = append(d, []Data{})
+		lastBig := -1
+		for j := 0; j < len(matrix[0]); j++ {
+			d[i] = append(d[i], Data{left: lastBig})
+			if matrix[i][j] > lastBig {
+				lastBig = matrix[i][j]
+			}
+		}
+	}
+	for i := len(matrix) - 1; i >= 0; i-- {
+		lastBig := -1
+		for j := len(matrix[0]) - 1; j >= 0; j-- {
+
+			d[i][j].right = lastBig
+			if matrix[i][j] > lastBig {
+				lastBig = matrix[i][j]
+			}
 		}
 	}
 
-}
+	//cols
+	for i := 0; i < len(matrix); i++ {
+		d = append(d, []Data{})
+		lastBig := -1
+		for j := 0; j < len(matrix[0]); j++ {
 
-type Tree struct {
-	name      string
-	files     map[string]*Tree
-	size      int
-	parentDir *Tree
-}
-
-func (t Tree) getSize() int {
-	if t.size != 0 {
-		return t.size
+			d[j][i].top = lastBig
+			if matrix[j][i] > lastBig {
+				lastBig = matrix[j][i]
+			}
+		}
 	}
-	size := 0
-	for _, v := range t.files {
-		size += v.getSize()
+	for i := len(matrix) - 1; i >= 0; i-- {
+		lastBig := -1
+		for j := len(matrix[0]) - 1; j >= 0; j-- {
+
+			d[j][i].bottom = lastBig
+			if matrix[j][i] > lastBig {
+				lastBig = matrix[j][i]
+			}
+		}
 	}
-	return size
+	return d
+
 }
-
-func BuildTree() *Tree {
-
+func buildMatrix() [][]int {
 	inFile, err := os.Open("input.txt")
 	if err != nil {
 		panic("err" + err.Error())
 	}
-
+	matrix := [][]int{}
 	reader := bufio.NewReader(inFile)
-	root := &Tree{name: "root"}
-	current := root
-	cwd := "/"
-
 	for {
 
 		line, _, err := reader.ReadLine()
 		if err != nil {
-			return root
+			return matrix
 		}
-		elements := strings.Split(string(line), " ")
-
-		if elements[0] == "$" {
-			//its a command
-			switch elements[1] {
-			case "cd":
-				cwd = elements[2]
-				if cwd == ".." {
-					//move up
-					current = current.parentDir
-				} else {
-					//move down
-					if _, ok := current.files[cwd]; !ok {
-						if current.files == nil {
-							current.files = map[string]*Tree{}
-						}
-						current.files[cwd] = &Tree{name: cwd, parentDir: current}
-					}
-					current = current.files[cwd]
-				}
-			case "ls":
-				//do nothing
-			default:
-				panic("unrecognised" + elements[1])
-			}
-		} else {
-			//non command
-			if elements[0] == "dir" {
-				if _, ok := current.files[elements[1]]; !ok {
-					if current.files == nil {
-						current.files = map[string]*Tree{}
-					}
-					current.files[elements[1]] = &Tree{name: elements[1], parentDir: current}
-				}
-			} else {
-				size, _ := strconv.Atoi(elements[0])
-				if current.files == nil {
-					current.files = map[string]*Tree{}
-				}
-				current.files[elements[1]] = &Tree{name: elements[1], parentDir: current, size: size}
-			}
-
+		arr := []int{}
+		for _, b := range line {
+			asInt := int(b) - 48
+			arr = append(arr, asInt)
 		}
+		matrix = append(matrix, arr)
 	}
 }
