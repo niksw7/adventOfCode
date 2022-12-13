@@ -4,85 +4,63 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"sort"
 )
 
 func main() {
 	matrix := buildMatrix()
-	count := 0
-	d := generateVisibility(matrix)
+	max := 0
+
 	for i := 0; i < len(matrix); i++ {
 		for j := 0; j < len(matrix[0]); j++ {
-			if d[i][j].min() < matrix[i][j] {
-				count++
+			s := score(matrix, i, j)
+			if s > max {
+				max = s
 			}
 		}
 	}
-	fmt.Println(count)
+	fmt.Println(max)
+}
+func score(m [][]int, row, col int) int {
+	rscore1 := 0
+	//go ahead
+	for c := col + 1; c < len(m[0]); c++ {
+		if m[row][c] >= m[row][col] {
+			rscore1++
+			break
+		}
+		rscore1++
+	}
+	rscore2 := 0
+	//go behind
+	for c := col - 1; c >= 0; c-- {
+		if m[row][c] >= m[row][col] {
+			rscore2++
+			break
+		}
+		rscore2++
+	}
+	cscore1 := 0
+	//go down
+	for r := row + 1; r < len(m); r++ {
+		if m[r][col] >= m[row][col] {
+			cscore1++
+			break
+		}
+		cscore1++
+	}
+	//go up
+	cscore2 := 0
+	for r := row - 1; r >= 0; r-- {
+		if m[r][col] >= m[row][col] {
+			cscore2++
+			break
+		}
+		cscore2++
+	}
+	//fmt.Println(rscore1, rscore2, cscore1, cscore2)
+	return rscore1 * rscore2 * cscore1 * cscore2
 }
 
-type Data struct {
-	left   int
-	right  int
-	top    int
-	bottom int
-}
-
-func (d Data) min() int {
-	a := []int{d.left, d.right, d.top, d.bottom}
-	sort.Ints(a)
-	return a[0]
-}
-
-func generateVisibility(matrix [][]int) [][]Data {
-	d := [][]Data{}
-	//rows
-	for i := 0; i < len(matrix); i++ {
-		d = append(d, []Data{})
-		lastBig := -1
-		for j := 0; j < len(matrix[0]); j++ {
-			d[i] = append(d[i], Data{left: lastBig})
-			if matrix[i][j] > lastBig {
-				lastBig = matrix[i][j]
-			}
-		}
-	}
-	for i := len(matrix) - 1; i >= 0; i-- {
-		lastBig := -1
-		for j := len(matrix[0]) - 1; j >= 0; j-- {
-
-			d[i][j].right = lastBig
-			if matrix[i][j] > lastBig {
-				lastBig = matrix[i][j]
-			}
-		}
-	}
-
-	//cols
-	for i := 0; i < len(matrix); i++ {
-		d = append(d, []Data{})
-		lastBig := -1
-		for j := 0; j < len(matrix[0]); j++ {
-
-			d[j][i].top = lastBig
-			if matrix[j][i] > lastBig {
-				lastBig = matrix[j][i]
-			}
-		}
-	}
-	for i := len(matrix) - 1; i >= 0; i-- {
-		lastBig := -1
-		for j := len(matrix[0]) - 1; j >= 0; j-- {
-
-			d[j][i].bottom = lastBig
-			if matrix[j][i] > lastBig {
-				lastBig = matrix[j][i]
-			}
-		}
-	}
-	return d
-
-}
 func buildMatrix() [][]int {
 	inFile, err := os.Open("input.txt")
 	if err != nil {
