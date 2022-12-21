@@ -4,81 +4,92 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 )
 
 func main() {
-	matrix := buildMatrix()
-	max := 0
-
-	for i := 0; i < len(matrix); i++ {
-		for j := 0; j < len(matrix[0]); j++ {
-			s := score(matrix, i, j)
-			if s > max {
-				max = s
-			}
-		}
-	}
-	fmt.Println(max)
-}
-func score(m [][]int, row, col int) int {
-	rscore1 := 0
-	//go ahead
-	for c := col + 1; c < len(m[0]); c++ {
-		if m[row][c] >= m[row][col] {
-			rscore1++
-			break
-		}
-		rscore1++
-	}
-	rscore2 := 0
-	//go behind
-	for c := col - 1; c >= 0; c-- {
-		if m[row][c] >= m[row][col] {
-			rscore2++
-			break
-		}
-		rscore2++
-	}
-	cscore1 := 0
-	//go down
-	for r := row + 1; r < len(m); r++ {
-		if m[r][col] >= m[row][col] {
-			cscore1++
-			break
-		}
-		cscore1++
-	}
-	//go up
-	cscore2 := 0
-	for r := row - 1; r >= 0; r-- {
-		if m[r][col] >= m[row][col] {
-			cscore2++
-			break
-		}
-		cscore2++
-	}
-	//fmt.Println(rscore1, rscore2, cscore1, cscore2)
-	return rscore1 * rscore2 * cscore1 * cscore2
-}
-
-func buildMatrix() [][]int {
 	inFile, err := os.Open("input.txt")
 	if err != nil {
 		panic("err" + err.Error())
 	}
-	matrix := [][]int{}
+	tracker := map[string]bool{}
+	count := 0
+
 	reader := bufio.NewReader(inFile)
+	headPosition := []int{0, 0}
+	tailPosition := []int{0, 0}
 	for {
 
 		line, _, err := reader.ReadLine()
 		if err != nil {
-			return matrix
+			fmt.Printf("count=%d\n", count)
+			return
 		}
-		arr := []int{}
-		for _, b := range line {
-			asInt := int(b) - 48
-			arr = append(arr, asInt)
+
+		split := strings.Split(string(line), " ")
+		character := split[0]
+		move, _ := strconv.Atoi(split[1])
+
+		for i := 1; i <= move; i++ {
+
+			switch character {
+			case "L":
+				//move the head first
+				headPosition = []int{headPosition[0], headPosition[1] - 1}
+			case "R":
+				headPosition = []int{headPosition[0], headPosition[1] + 1}
+			case "U":
+				headPosition = []int{headPosition[0] + 1, headPosition[1]}
+			case "D":
+				headPosition = []int{headPosition[0] - 1, headPosition[1]}
+			}
+			r, c := getPosToAdjust(headPosition, tailPosition)
+			tailPosition = []int{tailPosition[0] + r, tailPosition[1] + c}
+			if tracker[fmt.Sprintf("%d,%d", tailPosition[0], tailPosition[1])] {
+
+			} else {
+				tracker[fmt.Sprintf("%d,%d", tailPosition[0], tailPosition[1])] = true
+				count++
+			}
+
 		}
-		matrix = append(matrix, arr)
 	}
+
+}
+
+func getPosToAdjust(headPosition, tailPosition []int) (int, int) {
+	rowDifference := headPosition[0] - tailPosition[0]
+	colDifference := headPosition[1] - tailPosition[1]
+	r := 0
+	c := 0
+	if isAdjacent(rowDifference, colDifference) {
+		return 0, 0
+	}
+
+	if rowDifference > 0 {
+		r = 1
+	} else if rowDifference < 0 {
+		r = -1
+	}
+	if colDifference > 0 {
+		c = 1
+	} else if colDifference < 0 {
+		c = -1
+	}
+	return r, c
+
+}
+
+func isAdjacent(rowDifference, colDifference int) bool {
+	if rowDifference == 0 && colDifference == 0 {
+		return true
+	} else if rowDifference == 0 && (colDifference == -1 || colDifference == 1) {
+		return true
+	} else if colDifference == 0 && (rowDifference == -1 || rowDifference == 1) {
+		return true
+	} else if colDifference+rowDifference == 0 || colDifference-rowDifference == 0 {
+		return true
+	}
+	return false
 }
